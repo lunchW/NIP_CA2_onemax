@@ -1,7 +1,6 @@
 import random
 import numpy as np
 
-
 # generation function
 # param: gen_num means the number of solution
 def generate(gen_num):
@@ -56,34 +55,40 @@ def replacement(population_list,individual):
 def get_population_max_fitness(population_list):
     return max(fitness(individual) for individual in population_list)
 
-if __name__ == '__main__':
+def run_ga(population_size,tournament_size,mutation_rate,mutation_size,crossover_rate):
+    
+    iterations = []
 
-    sum_record_iter = 0
-    success_time = 0
-    # tournament_size should be even
-    tournament_size = 4
     # simulate 100 time ,calculate the probability of success
-    for i in range(100):
+    for i in range(20):
         record_iter = 0
-        while True:
-            # generation
-            pop_list = generate(100)
 
+        # generation
+        pop_list = generate(population_size)
+
+        while True:
+
+            #print("picking parents")
             # tournament -- pick parents
             parent_list = []
             for i in range(tournament_size):
                 parent_list.append(tournament(3, pop_list))
 
+            #print("crossing parents")
             # crossover
             child_list = []
-            for i in range(0, len(parent_list), 2):
-                child_list.extend(crossover(parent_list[i], parent_list[i + 1]))
+            rdn = np.random.rand()
+            if rdn < crossover_rate:
+                for i in range(0, len(parent_list), 2):
+                    child_list.extend(crossover(parent_list[i], parent_list[i + 1]))
 
+            #print("mutating")
             # mutation
             mu_child_list = []
             for child in child_list:
-                mu_child_list.append(mutate(child, size=2))
+                mu_child_list.append(mutate(child, size=mutation_size,pro=mutation_rate))
 
+            #print("replacing")
             # replacement
             for mu_child in mu_child_list:
                 replacement(pop_list, mu_child)
@@ -91,14 +96,25 @@ if __name__ == '__main__':
             # get_population_max_fitness
             max_population_fitness = get_population_max_fitness(pop_list)
 
-            if max_population_fitness == 15:
+            #print(max_population_fitness)
+            if max_population_fitness == 15 or record_iter > 1500:
                 break
             else:
                 record_iter += 1
 
-        print(record_iter)
-        sum_record_iter += record_iter
-        if(record_iter<1000):
-            success_time += 1
+        iterations.append(record_iter)
 
-    print(f"mean:{sum_record_iter/100},success_pro{success_time/100}")
+    return iterations
+
+if __name__ == '__main__':
+
+    [13, 6, 0.5472956682711377, 11, 0.01179750520180367]
+
+    population_size = 13
+    tournament_size = 6
+    mutation_rate = 0.5472956682711377
+    mutation_size = 11
+    crossover_rate = 0.01179750520180367
+
+    print(run_ga(population_size,tournament_size,mutation_rate,mutation_size,crossover_rate))
+
