@@ -4,6 +4,7 @@ from collections import Counter
 from tqdm import tqdm
 import pandas as pd
 
+
 # generation function
 # param: gen_num means the number of solution
 def generate(gen_num):
@@ -13,41 +14,44 @@ def generate(gen_num):
         for j in range(15):
             individual.append(random.randint(0, 1))
         # ind[0] = individual , ind[1] = fitness
-        ind_with_fit= [individual,fitness(individual)]
+        ind_with_fit = [individual, fitness(individual)]
         population_list.append(ind_with_fit)
 
     return population_list
 
+
 def fitness(individual):
     global fitness_num
-    fitness_num+=1
+    fitness_num += 1
     return sum(individual)
+
 
 # tour_size can not larger than population_length
 def tournament(tour_size, population_list):
-    tour_list :list = []
+    tour_list: list = []
     for i in range(tour_size):
-        rd_num = random.randint(0, len(population_list)-1)
+        rd_num = random.randint(0, len(population_list) - 1)
         tour_list.append(population_list[rd_num])
 
     parent = max(tour_list, key=lambda individual: individual[1]).copy()
 
     return parent
 
-def crossover(i1,i2,pro=1):
+
+def crossover(i1, i2, pro=1):
     rd_pro = np.random.rand()
     if (rd_pro < pro):
-        check_point = random.randint(0,len(i1[0])-1)
+        check_point = random.randint(0, len(i1[0]) - 1)
         new_i1 = i1[0][0:check_point] + i2[0][check_point:]
         new_i2 = i2[0][0:check_point] + i1[0][check_point:]
         new_i1_with_fit = [new_i1, fitness(new_i1)]
         new_i2_with_fit = [new_i2, fitness(new_i2)]
         return [new_i1_with_fit, new_i2_with_fit]
     else:
-        return [i1,i2]
+        return [i1, i2]
 
 
-def mutate(individual,size=1,pro=1):
+def mutate(individual, size=1, pro=1):
     new_individual = individual[0].copy()
     for i in range(size):
         rd_pro = np.random.rand()
@@ -59,18 +63,21 @@ def mutate(individual,size=1,pro=1):
     new_ind_with_fit = [new_individual, fitness(new_individual)]
     return new_ind_with_fit
 
-def replacement(population_list,individual):
-    population_list.sort(key=lambda ind:ind[1])
+
+def replacement(population_list, individual):
+    population_list.sort(key=lambda ind: ind[1])
     # replace the worst individual
     if individual[1] > population_list[0][1]:
         population_list[0] = individual
+
 
 # to find out the max fitness in the population
 def get_population_max_fitness(population_list):
     return max(individual[1] for individual in population_list)
 
+
 # tournament_size should be even
-def first_EA(pop_size,t_size,m_rate,m_size,cross_rate):
+def first_EA(pop_size, t_size, m_rate, m_size, cross_rate):
     global fitness_num
 
     sum_record_iter = 0
@@ -92,12 +99,12 @@ def first_EA(pop_size,t_size,m_rate,m_size,cross_rate):
             # crossover
             child_list = []
             for i in range(0, len(parent_list), 2):
-                child_list.extend(crossover(parent_list[i], parent_list[i + 1],cross_rate))
+                child_list.extend(crossover(parent_list[i], parent_list[i + 1], cross_rate))
 
             # mutation
             mu_child_list = []
             for child in child_list:
-                mu_child_list.append(mutate(child, size=m_size,pro=m_rate))
+                mu_child_list.append(mutate(child, size=m_size, pro=m_rate))
 
             # replacement
             for mu_child in mu_child_list:
@@ -106,32 +113,27 @@ def first_EA(pop_size,t_size,m_rate,m_size,cross_rate):
             # get_population_max_fitness
             max_population_fitness = get_population_max_fitness(pop_list)
 
-            if max_population_fitness == 15 and record_iter < 1000 and fitness_num < 100000:
-                record_iter_list.append(record_iter)
-                sum_record_iter += record_iter
-                success_time += 1
-                break
-            elif record_iter > 1000 or fitness_num > 100000:
+            if max_population_fitness == 15:
                 break
             else:
                 record_iter += 1
 
+        record_iter_list.append(record_iter)
+        sum_record_iter += record_iter
 
-
-
-
+        if (record_iter < 1000 and fitness_num < 100000):
+            success_time += 1
     np_record_iter_list = np.array(record_iter_list)
 
     # print(f"mean={sum(record_iter_list) / 100},success_pro={success_time / 100},std={np.std(np_record_iter_list)}")
     # print(fitness_num)
 
-
     success_rate = success_time / 100
-    mean = sum_record_iter / success_time
+    mean = sum_record_iter / 100
     if success_rate > 0.95:
         # return np_record_iter_list
         return mean
-    else :
+    else:
         return -1
 
 
@@ -139,7 +141,7 @@ class second_EA:
     def __init__(self):
         self.rank = []
 
-    def generate_population(self,size):
+    def generate_population(self, size):
         # chromosome will be [pop_size,t_size,m_rate,m_size,cross_rate
         # pop_size between 5 and 20
         # t_size between 2 and 10
@@ -147,10 +149,11 @@ class second_EA:
         # m_size between 1 and 5
         # crossover rate between 0 and 1
         pop_with_fit = []
-        population_list = [[np.random.randint(10, 50), 2 * np.random.randint(1, 5), np.random.rand(), np.random.randint(1, 5),
-                 np.random.rand()] for i in range(size)]
+        population_list = [
+            [np.random.randint(10, 50), 2 * np.random.randint(1, 5), np.random.rand(), np.random.randint(1, 5),
+             np.random.rand()] for i in range(size)]
         for individual in population_list:
-            individual_with_fitness = [individual,self.fitness(individual)]
+            individual_with_fitness = [individual, self.fitness(individual)]
             pop_with_fit.append(individual_with_fitness)
         return pop_with_fit
 
@@ -168,9 +171,7 @@ class second_EA:
     #         if have_ind_meanless == True:
     #             break
 
-
-
-    def fitness(self,individual):
+    def fitness(self, individual):
         # fitness of an individual is 1000-mean_num_iterations.
 
         # print("evaluating individual, ", individual)
@@ -181,8 +182,7 @@ class second_EA:
         # std = np.std(iterations)
         return mean
 
-
-    def tournament(self,population_list, tour_size=2):
+    def tournament(self, population_list, tour_size=2):
         tour_list: list = []
         for i in range(tour_size):
             rd_num = random.randint(0, len(population_list) - 1)
@@ -192,32 +192,31 @@ class second_EA:
 
         return parent
 
-    def tournament_parent_size(self,parent_size,population_list):
+    def tournament_parent_size(self, parent_size, population_list):
         parents = []
         for i in range(parent_size):
             parents.append(self.tournament(population_list))
 
         return parents
 
-
-    def crossover(self,parents,pro=1):
+    def crossover(self, parents, pro=1):
         children = []
-        for parent_index in range(0,len(parents),2):
+        for parent_index in range(0, len(parents), 2):
             rd_pro = np.random.rand()
-            if(rd_pro < pro):
-                check_point = random.randint(0,len(parents[parent_index])-1)
+            if (rd_pro < pro):
+                check_point = random.randint(0, len(parents[parent_index]) - 1)
                 new_child1 = parents[parent_index][0:check_point] + parents[parent_index + 1][check_point:]
-                new_child2 = parents[parent_index+1][0:check_point] + parents[parent_index][check_point:]
+                new_child2 = parents[parent_index + 1][0:check_point] + parents[parent_index][check_point:]
                 children.append(new_child1)
                 children.append(new_child2)
-            else :
-                children.append(parents[parent_index],parents[parent_index+1])
+            else:
+                children.append(parents[parent_index], parents[parent_index + 1])
 
         return children
 
-    def mutation(self,individual,size=1,pro=1):
+    def mutation(self, individual, size=1, pro=1):
         new_individual = individual[0].copy()
-        #some parameter have already been mutate
+        # some parameter have already been mutate
         exit_mutate_para_list = []
         rd_num_list = random.sample(range(0, 4), size)
         for rd_num in rd_num_list:
@@ -261,28 +260,22 @@ class second_EA:
                         change_factor = np.random.rand()
                     new_individual[rd_num] = change_factor
 
-        new_individual_with_fit = [new_individual,self.fitness(new_individual)]
+        new_individual_with_fit = [new_individual, self.fitness(new_individual)]
         return new_individual_with_fit
 
-
-    def replacement(self,population_list, individual):
+    def replacement(self, population_list, individual):
         population_list.sort(key=lambda individual: individual[1])
         # replace the worst individual
 
         if individual[1] > population_list[0][1]:
             population_list[0] = individual
 
-    def get_population_max_fitness(self,population_list):
-        population_list.sort(reverse=True,key=lambda individual: individual[1])
+    def get_population_max_fitness(self, population_list):
+        population_list.sort(reverse=True, key=lambda individual: individual[1])
         # print("population_list")
         # print(population_list)
         return population_list[0]
         # return max(individual[1] for individual in population_list)
-    
-
-
-
-
 
 
 if __name__ == '__main__':
@@ -300,41 +293,21 @@ if __name__ == '__main__':
     m_size_list = []
     cross_rate_list = []
     mean_value_list = []
-
-    s_EA = second_EA()
-
-    pop_list = s_EA.generate_population(40)
-    termination_criterion = 5000
-    process_bar = tqdm(range(termination_criterion))
-    process_bar.set_description_str("a-running")
-    for i in process_bar:
-        # tournament 2
-        parents = s_EA.tournament_parent_size(2,pop_list)
-
-        # crossover
-        children = s_EA.crossover(parents)
-
-        #mutation
-        mu_children = [s_EA.mutation(individual,size=2,pro=0.8) for individual in children]
-
-        #replacement
-        for individual in mu_children:
-            s_EA.replacement(pop_list,individual)
-
-        iter_list.append(i+1)
-        best_parameter_of_firstEA = s_EA.get_population_max_fitness(pop_list)
-        para_com_list.append(best_parameter_of_firstEA[0])
-        mean_value_list.append(best_parameter_of_firstEA[1])
-        pop_size_list.append(best_parameter_of_firstEA[0][0])
-        t_size_list.append(best_parameter_of_firstEA[0][1])
-        m_rate_list.append(best_parameter_of_firstEA[0][2])
-        m_size_list.append(best_parameter_of_firstEA[0][3])
-        cross_rate_list.append(best_parameter_of_firstEA[0][4])
-
-
-
-    best_parameter_of_firstEA = s_EA.get_population_max_fitness(pop_list)
-    print(best_parameter_of_firstEA)
+    iter_num = 0
+    for pop_size in range(10, 60, 10):
+        for t_size in range(2, 10, 2):
+            for m_rate in np.arange(0, 1.2, 0.2):
+                for m_size in range(1,6):
+                    for cross_rate in np.arange(0,1.2,0,2):
+                        iter_num +=1
+                        mean_value = first_EA(pop_size, t_size, m_rate, m_size, cross_rate)
+                        iter_list.append(iter_num)
+                        pop_size_list.append(pop_size)
+                        t_size_list.append(t_size)
+                        m_rate_list.append(m_rate)
+                        m_size_list.append(m_size)
+                        cross_rate_list.append(cross_rate)
+                        mean_value_list.append(mean_value)
 
     output_data = {
         "iter": iter_list,
@@ -346,6 +319,6 @@ if __name__ == '__main__':
         'mean_value': mean_value_list,
     }
     output_csv = pd.DataFrame(data=output_data)
-    output_csv.to_excel('../data/output-2EA4.xls')
+    output_csv.to_excel('../data/output-1ea_differentparameter.xls')
 
 
