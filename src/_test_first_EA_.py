@@ -77,7 +77,7 @@ def get_population_max_fitness(population_list):
 
 
 # tournament_size should be even
-def first_EA(pop_size, t_size, m_rate, m_size, cross_rate):
+def first_EA(pop_size,t_size,m_rate,m_size,cross_rate):
     global fitness_num
 
     sum_record_iter = 0
@@ -99,12 +99,12 @@ def first_EA(pop_size, t_size, m_rate, m_size, cross_rate):
             # crossover
             child_list = []
             for i in range(0, len(parent_list), 2):
-                child_list.extend(crossover(parent_list[i], parent_list[i + 1], cross_rate))
+                child_list.extend(crossover(parent_list[i], parent_list[i + 1],cross_rate))
 
             # mutation
             mu_child_list = []
             for child in child_list:
-                mu_child_list.append(mutate(child, size=m_size, pro=m_rate))
+                mu_child_list.append(mutate(child, size=m_size,pro=m_rate))
 
             # replacement
             for mu_child in mu_child_list:
@@ -113,27 +113,32 @@ def first_EA(pop_size, t_size, m_rate, m_size, cross_rate):
             # get_population_max_fitness
             max_population_fitness = get_population_max_fitness(pop_list)
 
-            if max_population_fitness == 15:
+            if max_population_fitness == 15 and record_iter < 1000 and fitness_num < 100000:
+                record_iter_list.append(record_iter)
+                sum_record_iter += record_iter
+                success_time += 1
+                break
+            elif record_iter > 1000 or fitness_num > 100000:
                 break
             else:
                 record_iter += 1
 
-        record_iter_list.append(record_iter)
-        sum_record_iter += record_iter
 
-        if (record_iter < 1000 and fitness_num < 100000):
-            success_time += 1
+
+
+
     np_record_iter_list = np.array(record_iter_list)
 
     # print(f"mean={sum(record_iter_list) / 100},success_pro={success_time / 100},std={np.std(np_record_iter_list)}")
     # print(fitness_num)
 
+
     success_rate = success_time / 100
-    mean = sum_record_iter / 100
+    mean = sum_record_iter / success_time
     if success_rate > 0.95:
         # return np_record_iter_list
         return mean
-    else:
+    else :
         return -1
 
 
@@ -294,13 +299,19 @@ if __name__ == '__main__':
     cross_rate_list = []
     mean_value_list = []
     iter_num = 0
-    for pop_size in range(10, 60, 10):
+    for pop_size in range(10, 20, 2):
+        print(pop_size)
         for t_size in range(2, 10, 2):
-            for m_rate in np.arange(0, 1.2, 0.2):
-                for m_size in range(1,6):
-                    for cross_rate in np.arange(0,1.2,0,2):
-                        iter_num +=1
+            print(t_size)
+            for m_rate in np.arange(0.2, 1, 0.2):
+                print(m_rate)
+                for m_size in range(7,15):
+                    print(m_size)
+                    for cross_rate in np.arange(0.2,1,0.2):
+                        print(cross_rate)
                         mean_value = first_EA(pop_size, t_size, m_rate, m_size, cross_rate)
+                        print("---------------")
+                        print(mean_value)
                         iter_list.append(iter_num)
                         pop_size_list.append(pop_size)
                         t_size_list.append(t_size)
@@ -308,7 +319,7 @@ if __name__ == '__main__':
                         m_size_list.append(m_size)
                         cross_rate_list.append(cross_rate)
                         mean_value_list.append(mean_value)
-
+                        print(iter_num)
     output_data = {
         "iter": iter_list,
         'population_size': pop_size_list,

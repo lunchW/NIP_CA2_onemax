@@ -147,7 +147,7 @@ class second_EA:
         # m_size between 1 and 5
         # crossover rate between 0 and 1
         pop_with_fit = []
-        population_list = [[np.random.randint(10, 50), 2 * np.random.randint(1, 5), np.random.rand(), np.random.randint(1, 5),
+        population_list = [[np.random.randint(10, 20), 2 * np.random.randint(1, 5), np.random.rand(), np.random.randint(1, 5),
                  np.random.rand()] for i in range(size)]
         for individual in population_list:
             individual_with_fitness = [individual,self.fitness(individual)]
@@ -225,10 +225,10 @@ class second_EA:
             if (rd_pro < pro):
                 # population_size change
                 if rd_num == 0:
-                    change_factor = np.random.randint(10, 50)
+                    change_factor = np.random.randint(10, 20)
                     # make sure the change_factor is not equal to old population_size
                     while change_factor == new_individual[0]:
-                        change_factor = np.random.randint(10, 50)
+                        change_factor = np.random.randint(10, 20)
                     new_individual[rd_num] = change_factor
 
                 # t_size change
@@ -278,20 +278,9 @@ class second_EA:
         # print(population_list)
         return population_list[0]
         # return max(individual[1] for individual in population_list)
-    
 
 
-
-
-
-
-if __name__ == '__main__':
-    # chromosome will be [pop_size,t_size,m_rate,m_size,cross_rate
-    # pop_size between 5 and 20
-    # t_size between 2 and 10
-    # m_rate between 0 and 1
-    # m_size between 0 and 15
-    # cross_rate between 0 and 1
+def second_EA_main_(second_pop_size,second_m_size,second_m_rate):
     iter_list = []
     para_com_list = []
     pop_size_list = []
@@ -300,28 +289,26 @@ if __name__ == '__main__':
     m_size_list = []
     cross_rate_list = []
     mean_value_list = []
-
     s_EA = second_EA()
-
-    pop_list = s_EA.generate_population(40)
-    termination_criterion = 5000
+    pop_list = s_EA.generate_population(second_pop_size)
+    termination_criterion = 10000
     process_bar = tqdm(range(termination_criterion))
     process_bar.set_description_str("a-running")
     for i in process_bar:
         # tournament 2
-        parents = s_EA.tournament_parent_size(2,pop_list)
+        parents = s_EA.tournament_parent_size(2, pop_list)
 
         # crossover
         children = s_EA.crossover(parents)
 
-        #mutation
-        mu_children = [s_EA.mutation(individual,size=2,pro=0.8) for individual in children]
+        # mutation
+        mu_children = [s_EA.mutation(individual, size=second_m_size, pro=second_m_rate) for individual in children]
 
-        #replacement
+        # replacement
         for individual in mu_children:
-            s_EA.replacement(pop_list,individual)
+            s_EA.replacement(pop_list, individual)
 
-        iter_list.append(i+1)
+        iter_list.append(i + 1)
         best_parameter_of_firstEA = s_EA.get_population_max_fitness(pop_list)
         para_com_list.append(best_parameter_of_firstEA[0])
         mean_value_list.append(best_parameter_of_firstEA[1])
@@ -330,12 +317,8 @@ if __name__ == '__main__':
         m_rate_list.append(best_parameter_of_firstEA[0][2])
         m_size_list.append(best_parameter_of_firstEA[0][3])
         cross_rate_list.append(best_parameter_of_firstEA[0][4])
-
-
-
     best_parameter_of_firstEA = s_EA.get_population_max_fitness(pop_list)
     print(best_parameter_of_firstEA)
-
     output_data = {
         "iter": iter_list,
         'population_size': pop_size_list,
@@ -346,6 +329,19 @@ if __name__ == '__main__':
         'mean_value': mean_value_list,
     }
     output_csv = pd.DataFrame(data=output_data)
-    output_csv.to_excel('../data/output-2EA4.xls')
+    output_csv.to_excel(f'../data/output-2EA-psize={second_pop_size}msize-{second_m_size}-m_rate{second_m_rate}.xls')
+
+
+if __name__ == '__main__':
+    # chromosome will be [pop_size,t_size,m_rate,m_size,cross_rate
+    # pop_size between 10 and 50
+    # t_size between 2 and 10 STEP 2
+    # m_rate between 0 and 1
+    # m_size between 1 and 5
+    # cross_rate between 0 and 1
+    second_pop_size = 30
+    second_m_rate = 0.6
+    for second_m_size in range(2, 4, 1):
+        second_EA_main_(second_pop_size,second_m_size,second_m_rate)
 
 
