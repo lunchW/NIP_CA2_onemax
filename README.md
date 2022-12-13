@@ -1,5 +1,9 @@
 # NIP_CA2_onemax
 
+## environment
+
+This program needs to be run in pycharm, the packages needed are matplotlib and pandas, tqdm, numpy
+
 ## 1.first EA(simple-max solver)
 
 In the first EA, pop_size, t_size, m_rate, m_size, cross_rate are passed in.
